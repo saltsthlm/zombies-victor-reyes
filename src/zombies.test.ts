@@ -1,6 +1,10 @@
 import { ok } from "node:assert/strict";
 import { test } from "node:test";
 
+type Zombie = {
+  name: string;
+};
+
 const createRoom = (capacity: number) => {
   const _capacity = capacity;
 
