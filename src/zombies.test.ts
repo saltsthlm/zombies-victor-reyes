@@ -5,12 +5,25 @@ type Zombie = {
   name: string;
 };
 
-const createRoom = (capacity: number) => {
-  const _capacity = capacity;
+const createRoom = (capacity?: number) => {
+  const _capacity = capacity ?? 0;
   const zombies: Zombie[] = [];
 
   return {
     isFull: () => zombies.length >= _capacity,
+    /**
+     * Tries to add a zombie to the room.
+     *
+     * @param zombie - The zombie to be added.
+     * @returns `true` if the zombie was successfully added, `false` if the room is full.
+     */
+    addZombie: (zombie: Zombie) => {
+      if (zombies.length < _capacity) {
+        zombies.push(zombie);
+        return true;
+      }
+      return false;
+    },
   };
 };
 
@@ -30,7 +43,14 @@ test("empty room that fits one zombie is not full", () => {
   ok(!isRoomFull);
 });
 
-test.skip("room with no capacity cannot fit any zombies", () => {});
+test("room with no capacity cannot fit any zombies", () => {
+  const room = createRoom();
+  const zombie = { name: "Alex" };
+
+  const addZombieSuccesefully = room.addZombie(zombie);
+
+  ok(!addZombieSuccesefully);
+});
 
 test.skip("one-roomer becomes full when a zombie is added", () => {});
 
