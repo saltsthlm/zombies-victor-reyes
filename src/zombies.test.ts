@@ -1,7 +1,9 @@
+import { deepStrictEqual } from "node:assert";
 import { ok } from "node:assert/strict";
 import { test } from "node:test";
 
 type Zombie = {
+  id: number;
   name: string;
 };
 
@@ -10,19 +12,28 @@ const createRoom = (capacity?: number) => {
   const zombies: Zombie[] = [];
 
   return {
+    zombies,
+
     isFull: () => zombies.length >= _capacity,
+
     /**
-     * Tries to add a zombie to the room.
+     * Attempts to add a zombie to the room.
+     * If the room is already at full capacity, the new zombie consumes (removes from the list) the oldest one.
+     * If the capacity is zero, no zombies can be added.
      *
      * @param zombie - The zombie to be added.
-     * @returns `true` if the zombie was successfully added, `false` if the room is full.
+     * @returns `true` if the zombie was successfully added, `false` if the room has zero capacity.
      */
     addZombie: (zombie: Zombie) => {
-      if (zombies.length < _capacity) {
-        zombies.push(zombie);
-        return true;
+      if (_capacity === 0) return false;
+
+      if (zombies.length == _capacity) {
+        zombies.shift();
       }
-      return false;
+
+      zombies.push(zombie);
+
+      return true;
     },
   };
 };
@@ -45,7 +56,7 @@ test("empty room that fits one zombie is not full", () => {
 
 test("room with no capacity cannot fit any zombies", () => {
   const room = createRoom();
-  const zombie = { name: "Alex" };
+  const zombie = { id: 0, name: "Alex" };
 
   const addZombieSuccesefully = room.addZombie(zombie);
 
@@ -54,7 +65,7 @@ test("room with no capacity cannot fit any zombies", () => {
 
 test("one-roomer becomes full when a zombie is added", () => {
   const room = createRoom(1);
-  const zombie = { name: "Alex" };
+  const zombie = { id: 0, name: "Alex" };
   room.addZombie(zombie);
 
   const isRoomFull = room.isFull();
@@ -64,7 +75,7 @@ test("one-roomer becomes full when a zombie is added", () => {
 
 test("two-roomer is not full when a zombie is added", () => {
   const room = createRoom(2);
-  const zombie = { name: "Alex" };
+  const zombie = { id: 0, name: "Alex" };
   room.addZombie(zombie);
 
   const isRoomFull = room.isFull();
@@ -72,6 +83,16 @@ test("two-roomer is not full when a zombie is added", () => {
   ok(!isRoomFull);
 });
 
-test.skip("second zombie consumes first zombie when added to a one-roomer", () => {});
+test("second zombie consumes first zombie when added to a one-roomer", () => {
+  const room = createRoom(1);
+  const zombieAlex = { id: 0, name: "Alex" };
+  const zombieFred = { id: 1, name: "Fred" };
+  room.addZombie(zombieAlex);
+  room.addZombie(zombieFred);
+
+  const currentZombies = room.zombies;
+
+  deepStrictEqual(currentZombies, [zombieFred]);
+});
 
 // You are free to add more tests that you think are relevant!
